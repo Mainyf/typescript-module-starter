@@ -34,6 +34,7 @@ function _build() {
 
 function start() {
     browserSync.init({
+        port: 8080,
         server: {
             baseDir: "./"
             // files: [
