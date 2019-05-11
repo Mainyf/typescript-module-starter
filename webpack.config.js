@@ -3,8 +3,8 @@ const path = require('path');
 const appSrc = path.resolve(__dirname, 'src');
 const appNodeModules = path.resolve(__dirname, 'node_modules');
 
-module.exports = (name) => (
-    {
+module.exports = (name) => {
+    return {
         resolve: {
             modules: ['node_modules', appNodeModules],
             extensions: [
@@ -46,5 +46,5 @@ module.exports = (name) => (
                 }
             ]
         }
-    }
-);
+    };
+}

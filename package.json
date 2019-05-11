@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "gulp start",
-    "build": "gulp build"
+    "build": "gulp build",
+    "tslint": "tslint --fix -c ./tslint.json './src/**/*{.ts,.tsx}'"
   },
   "keywords": [],
   "author": "",
@@ -13,13 +14,16 @@
   "devDependencies": {
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
-    "gulp": "^4.0.2",
-    "browser-sync": "^2.26.5",
     "babel-loader": "^8.0.5",
+    "browser-sync": "^2.26.5",
+    "declaration-bundler-webpack-plugin": "^1.0.3",
     "del": "^3.0.0",
+    "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
     "gulp-rename": "^1.4.0",
+    "gulp-typescript": "^5.0.1",
     "ts-loader": "^5.4.5",
+    "tslint": "^5.16.0",
     "typescript": "^3.2.2",
     "vinyl-named": "^1.1.0",
     "webpack": "^4.30.0",
