@@ -1,13 +1,17 @@
 const
     gulp = require("gulp"),
-    exec = require('child_process').exec,
-    webpack = require("webpack-stream"),
-    ts = require('gulp-typescript'),
+    webpackStream = require("webpack-stream"),
+    webpack = require("webpack"),
     named = require("vinyl-named"),
+    concat = require("gulp-concat"),
+    rename = require("gulp-rename"),
     browserSync = require("browser-sync").create(),
     del = require("del"),
-    moduleName = "demo",
-    webpackConfig = require("./webpack.config")(moduleName),
+    sourcemaps = require('gulp-sourcemaps'),
+    uglify = require('gulp-uglify'),
+    replace = require('gulp-replace'),
+    moduleName = "jms",
+    webpackConfig = require("./webpack.config"),
     output = "./dist",
     declarationDir = "./types",
     srcFolder = "./src";
@@ -17,22 +21,39 @@ function clean() {
 }
 
 function generateScript(webpackConfig) {
+    const fileName = toLowerCase(moduleName);
     return gulp
         .src(`${srcFolder}/index.ts`)
         .pipe(named())
-        .pipe(webpack(webpackConfig))
-        .pipe(gulp.dest(output));
+        .pipe(webpackStream(webpackConfig))
+        .pipe(rename(`${fileName}.js`))
+        .pipe(sourcemaps.init())
+        .pipe(gulp.dest(output))
+        .pipe(uglify({ mangle: { toplevel: true }}))
+        .pipe(rename(`${fileName}.min.js`))
+        .pipe(gulp.dest(output))
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest(output))
 }
 
 function script() {
-    const config = { ...{}, ...webpackConfig };
-    config.mode = "development";
+    process.env.NODE_ENV = "development";
+    const config = {...{}, ...webpackConfig(moduleName)};
+    config.plugins = [
+        new webpack.NamedModulesPlugin(),
+        new webpack.DefinePlugin({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV)}),
+    ];
     return generateScript(config);
 }
 
 function _build() {
-    const config = { ...{}, ...webpackConfig };
-    config.mode = "production";
+    process.env.NODE_ENV = "production";
+    const config = {...{}, ...webpackConfig(moduleName)};
+    config.plugins = [
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV) }),
+        new webpack.NoEmitOnErrorsPlugin()
+    ];
     return generateScript(config);
 }
 
@@ -41,10 +62,6 @@ function start() {
         port: 8080,
         server: {
             baseDir: "./"
-            // files: [
-            //     'dist/*.css',
-            //     'dist/*.js',
-            // ]
         }
     });
     gulp.watch(`${srcFolder}/**/*`, gulp.series(script, done => {
@@ -53,23 +70,24 @@ function start() {
     }));
 }
 
-const generateDtsTsConfig = ts.createProject('tsconfig.json', {
-    watch: false,
-    declaration: true,
-});
+function bundleDts() {
+    const fileName = toLowerCase(moduleName);
+    del(`${output}/${fileName}.d.ts`);
+    return gulp
+        .src(`./${declarationDir}/*.d.ts`)
+        .pipe(concat(`${fileName}.d.ts`))
+        .pipe(replace(/^[import|export].*/gm, ''))
+        .pipe(gulp.dest(output));
+}
 
-function generateDts() {
-    del(declarationDir);
-    const result = gulp.src(`${srcFolder}/**/*.ts`)
-        .pipe(generateDtsTsConfig());
-    return result.dts
-        .pipe(gulp.dest(declarationDir));
+function toLowerCase(name) {
+    return name[0].toLowerCase() + name.substring(1);
 }
 
 exports.clean = clean;
 
-exports.generateDts = generateDts;
+exports.bundleDts = bundleDts;
 
-exports.build = gulp.series(generateDts, clean, _build);
+exports.build = gulp.series(clean, _build, bundleDts);
 
 exports.start = gulp.series(clean, script, start);
