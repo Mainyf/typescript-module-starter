@@ -29,7 +29,7 @@ function generateScript(webpackConfig) {
         .pipe(rename(`${fileName}.js`))
         .pipe(sourcemaps.init())
         .pipe(gulp.dest(output))
-        .pipe(uglify({ mangle: { toplevel: true }}))
+        .pipe(uglify())
         .pipe(rename(`${fileName}.min.js`))
         .pipe(gulp.dest(output))
         .pipe(sourcemaps.write('.'))
