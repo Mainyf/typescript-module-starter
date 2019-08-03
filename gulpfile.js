@@ -8,7 +8,7 @@ const
     browserSync = require("browser-sync").create(),
     del = require("del"),
     sourcemaps = require('gulp-sourcemaps'),
-    uglify = require('gulp-uglify'),
+    terser = require('gulp-terser');
     replace = require('gulp-replace'),
     moduleName = "jms",
     webpackConfig = require("./webpack.config"),
@@ -29,7 +29,7 @@ function generateScript(webpackConfig) {
         .pipe(rename(`${fileName}.js`))
         .pipe(sourcemaps.init())
         .pipe(gulp.dest(output))
-        .pipe(uglify())
+        .pipe(terser())
         .pipe(rename(`${fileName}.min.js`))
         .pipe(gulp.dest(output))
         .pipe(sourcemaps.write('.'))
