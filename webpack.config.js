@@ -5,8 +5,6 @@ const appNodeModules = path.resolve(__dirname, 'node_modules');
 
 module.exports = (name) => {
     return {
-        mode: 'none',
-        devtool: 'inline-source-map',
         resolve: {
             modules: ['node_modules', appNodeModules],
             extensions: [
@@ -19,6 +17,7 @@ module.exports = (name) => {
             }
         },
         output: {
+            filename: `${name}.js`,
             libraryExport: 'default',
             libraryTarget: 'umd',
             library: name

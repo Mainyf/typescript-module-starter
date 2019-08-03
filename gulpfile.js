@@ -7,10 +7,10 @@ const
     rename = require("gulp-rename"),
     browserSync = require("browser-sync").create(),
     del = require("del"),
-    sourcemaps = require('gulp-sourcemaps'),
-    terser = require('gulp-terser');
+    terser = require('gulp-terser'),
     replace = require('gulp-replace'),
     moduleName = "jms",
+    moduleFileName = toLowerCase(moduleName),
     webpackConfig = require("./webpack.config"),
     output = "./dist",
     declarationDir = "./types",
@@ -20,41 +20,39 @@ function clean() {
     return del(output);
 }
 
-function generateScript(webpackConfig) {
-    const fileName = toLowerCase(moduleName);
-    return gulp
-        .src(`${srcFolder}/index.ts`)
-        .pipe(named())
-        .pipe(webpackStream(webpackConfig))
-        .pipe(rename(`${fileName}.js`))
-        .pipe(sourcemaps.init())
-        .pipe(gulp.dest(output))
-        .pipe(terser())
-        .pipe(rename(`${fileName}.min.js`))
-        .pipe(gulp.dest(output))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(output))
-}
-
 function script() {
     process.env.NODE_ENV = "development";
     const config = {...{}, ...webpackConfig(moduleName)};
-    config.plugins = [
-        new webpack.NamedModulesPlugin(),
-        new webpack.DefinePlugin({"process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV)}),
-    ];
-    return generateScript(config);
+    config.mode = process.env.NODE_ENV;
+    return gulp
+        .src(`${srcFolder}/index.ts`)
+        .pipe(named())
+        .pipe(webpackStream(config))
+        .pipe(gulp.dest(output));
 }
 
 function _build() {
     process.env.NODE_ENV = "production";
     const config = {...{}, ...webpackConfig(moduleName)};
+    config.mode = 'none';
     config.plugins = [
+        new webpack.DefinePlugin({"process.env.NODE_ENV": JSON.stringify("production")}),
         new webpack.optimize.ModuleConcatenationPlugin(),
-        new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV) }),
         new webpack.NoEmitOnErrorsPlugin()
     ];
-    return generateScript(config);
+    return gulp
+        .src(`${srcFolder}/index.ts`)
+        .pipe(named())
+        .pipe(webpackStream(config))
+        .pipe(gulp.dest(output));
+}
+
+function compressJs() {
+    return gulp
+        .src(`${output}/${moduleFileName}.js`)
+        .pipe(terser())
+        .pipe(rename(`${moduleFileName}.min.js`))
+        .pipe(gulp.dest(output))
 }
 
 function start() {
@@ -71,11 +69,10 @@ function start() {
 }
 
 function bundleDts() {
-    const fileName = toLowerCase(moduleName);
-    del(`${output}/${fileName}.d.ts`);
+    del(`${output}/${moduleFileName}.d.ts`);
     return gulp
         .src(`./${declarationDir}/*.d.ts`)
-        .pipe(concat(`${fileName}.d.ts`))
+        .pipe(concat(`${moduleFileName}.d.ts`))
         .pipe(replace(/^[import|export].*/gm, ''))
         .pipe(gulp.dest(output));
 }
@@ -88,6 +85,10 @@ exports.clean = clean;
 
 exports.bundleDts = bundleDts;
 
-exports.build = gulp.series(clean, _build, bundleDts);
+exports.compressJs = compressJs;
+
+exports.script = script;
+
+exports.build = gulp.series(clean, _build, compressJs, bundleDts);
 
 exports.start = gulp.series(clean, script, start);
