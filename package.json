@@ -12,9 +12,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
-    "babel-loader": "^8.0.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
     "browser-sync": "^2.26.7",
     "del": "^3.0.0",
     "gulp": "^4.0.2",
@@ -27,11 +27,11 @@
     "ncp": "^2.0.0",
     "rimraf": "^2.6.3",
     "ts-loader": "^5.4.5",
-    "tslint": "^5.16.0",
-    "typescript": "^3.2.2",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3",
     "vinyl-named": "^1.1.0",
-    "webpack": "^4.30.0",
-    "webpack-cli": "^3.3.1",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6",
     "webpack-stream": "^5.2.1"
   },
   "dependencies": {
